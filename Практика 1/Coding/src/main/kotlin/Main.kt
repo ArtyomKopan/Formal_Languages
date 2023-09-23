@@ -120,7 +120,42 @@ fun main() {
     val scan = java.util.Scanner(System.`in`)
     println("Введите путь к файлу с описанием грамматики: ")
     val pathToInputFile = scan.next() ?: "../expression.txt"
-    val grammarDescription = Files.readAllLines(Path.of(pathToInputFile)).toString()
-    val codes = coding(grammarDescription)
+    val grammarDescription = Files.readAllLines(Path.of(pathToInputFile))
+    val codes = coding(grammarDescription.toString())
+//    val encodedText = mutableListOf<Int>()
+    for (line in grammarDescription) {
+        val encodedElementsOfCommand = mutableListOf<Int>()
+        val leftPart = line.split(" : ")[0]
+        val rightPart = line.split(" : ")[1]
+        if (leftPart == "Endofgram") {
+            encodedElementsOfCommand.add(codes["Endofgram"] ?: -1)
+        }
+        else {
+            encodedElementsOfCommand.add(codes[leftPart] ?: -1)
+            // разбираем правую часть
+            var isWord = false
+            var wordBuffer = ""
+            for (ch in rightPart) {
+                if (ch.isLetter() && !isWord) {
+                    isWord = true
+                    wordBuffer += ch
+                }
+                else if (ch.isLetter() && isWord) {
+                    wordBuffer += ch
+                }
+                else if (!ch.isLetter() && isWord) {
+                    isWord = false
+                    encodedElementsOfCommand.add(codes[wordBuffer] ?: -1)
+                    wordBuffer = ""
+                    encodedElementsOfCommand.add(codes[ch.toString()] ?: -1)
+                }
+                else {
+                    encodedElementsOfCommand.add(codes[ch.toString()] ?: -1)
+                }
+            }
+        }
 
+        encodedElementsOfCommand.forEach { print("$it, ") }
+        println()
+    }
 }
