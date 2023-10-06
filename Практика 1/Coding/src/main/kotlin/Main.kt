@@ -1,9 +1,8 @@
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
-fun coding(grammarDescription: String) : Map<String, Int> {
-    val codes = mutableMapOf<String, Int>(
+fun coding(grammarDescription: List<String>) : Map<String, Int> {
+    val codes = mutableMapOf(
         ":" to 1,
         "(" to 2,
         ")" to 3,
@@ -17,62 +16,36 @@ fun coding(grammarDescription: String) : Map<String, Int> {
         "Eofgram" to 1000
     )
 
+    val grammar = mutableListOf<String>()
+
+    for (command in grammarDescription) {
+        grammar.add(command.trim())
+    }
+
     var termNumber = 51
     var nontermNumber = 11
     var semanticNumber = 101
-
-    val grammar = grammarDescription.split('\n')
 
     // кодируем нетерминалы
     for (command in grammar) {
         if (command == "Eofgram")
             break
         val nonterm = command.split(" : ")[0]
-        if (termNumber <= 50)
-            codes[nonterm] = termNumber++
+        if (nontermNumber <= 50)
+            codes[nonterm] = nontermNumber++
         else
             break
     }
 
     // кодируем терминалы и семантики
     for (command in grammar) {
-        if (command == "Eofgram")
+        if ("Eofgram" in command)
             break
         val rightPartCommand = command.split(" : ")[1]
 
         // кодируем терминалы
         var isTerminal = false
         var buffer = ""
-        for (ch in rightPartCommand) {
-            if (termNumber > 100)
-                break
-
-            // первый способ поиска терминалов
-            if (ch == '\'' && !isTerminal)
-                isTerminal = true
-            else if (ch == '\'' && isTerminal) {
-                if (!codes.contains(buffer))
-                    codes[buffer] = termNumber++
-                isTerminal = false
-                buffer = ""
-            }
-            if (isTerminal)
-                buffer += ch
-
-            // второй способ поиска терминалов
-            if (ch.isLowerCase() && !isTerminal) {
-                isTerminal = true
-                buffer += ch
-            }
-            else if (ch.isLowerCase() && isTerminal)
-                buffer += ch
-            else {
-                if (!codes.contains(buffer))
-                    codes[buffer] = termNumber++
-                buffer = ""
-                isTerminal = false
-            }
-        }
 
         // кодируем нетерминалы, обозначенные заглавными буквами
         var isNonterminal = false
@@ -87,7 +60,7 @@ fun coding(grammarDescription: String) : Map<String, Int> {
                 buffer += ch
             else {
                 isNonterminal = false
-                if (!codes.contains(buffer))
+                if (buffer !in codes.keys)
                     codes[buffer] = nontermNumber++
                 buffer = ""
             }
@@ -100,19 +73,64 @@ fun coding(grammarDescription: String) : Map<String, Int> {
             if (semanticNumber > 150)
                 break
 
-            if (ch == '$')
+            if (ch == '$') {
                 isSemantics = true
-            else if (ch == ' ') {
+//                buffer += ch
+            }
+            else if (isSemantics && (ch.isLetter() || ch.isDigit()))
+                buffer += ch
+            else if (isSemantics) {
                 isSemantics = false
-                codes[buffer] = semanticNumber++
+                if (buffer !in codes.keys)
+                    codes[buffer] = semanticNumber++
                 buffer = ""
             }
+        }
 
-            if (isSemantics)
+        for (ch in rightPartCommand) {
+            if (termNumber > 100)
+                break
+
+            // первый способ поиска терминалов
+            if (ch == '\'' && !isTerminal) {
+                isTerminal = true
+            }
+            else if (ch == '\'' && isTerminal) {
+                if (buffer !in codes.keys)
+                    codes[buffer] = termNumber++
+                isTerminal = false
+                buffer = ""
+            } else if (isTerminal) {
+                if (ch != '<' && ch != '>')
+                    buffer += ch
+            }
+        }
+
+        for (ch in rightPartCommand) {
+            if (termNumber > 100)
+                break
+            // второй способ поиска терминалов
+            if (ch.isLowerCase() && !isTerminal) {
+                isTerminal = true
                 buffer += ch
+            }
+            else if ((ch.isLowerCase() || ch.isDigit()) && isTerminal)
+                buffer += ch
+            else {
+                if (buffer !in codes.keys)
+                    codes[buffer] = termNumber++
+                buffer = ""
+                isTerminal = false
+            }
         }
     }
 
+    val trash = mutableListOf<String>()
+    for (k in codes) {
+        if ("Eofgram" in k.key && k.value != 1000)
+            trash.add(k.key)
+    }
+    codes.filterKeys { it == "" || " " in it || it in trash}
     return codes
 }
 
@@ -120,41 +138,58 @@ fun main() {
     val scan = java.util.Scanner(System.`in`)
     println("Введите путь к файлу с описанием грамматики: ")
     val pathToInputFile = scan.next() ?: "../expression.txt"
-    val grammarDescription = Files.readAllLines(Path.of(pathToInputFile))
-    val codes = coding(grammarDescription.toString())
-//    val encodedText = mutableListOf<Int>()
-    for (line in grammarDescription) {
+    val grammarDescription = Files.readString(Path.of(pathToInputFile)).split(" .")
+    val codes = coding(grammarDescription)
+    codes.forEach { (t, u) -> println("$t $u") }
+
+    // таким образом, терминалы, нетерминалы и семантики в словаре кодов представлены одинаково:
+    // как последовательности латинских букв и цифр
+    // знаки '' < > $ не учитываются и в кодах, и учитывать их не нужно
+
+    for (line_ in grammarDescription) {
+        val line = line_.trim()
         val encodedElementsOfCommand = mutableListOf<Int>()
+
+
+        if ("Eofgram" in line) {
+            println(1000)
+            break
+        }
+
+        // считаем, что строка имеет вид
+        // левая_часть : правая_часть
         val leftPart = line.split(" : ")[0]
         val rightPart = line.split(" : ")[1]
-        if (leftPart == "Endofgram") {
-            encodedElementsOfCommand.add(codes["Endofgram"] ?: -1)
-        }
-        else {
-            encodedElementsOfCommand.add(codes[leftPart] ?: -1)
-            // разбираем правую часть
+
+        encodedElementsOfCommand.add(codes[leftPart] ?: -1)
+        encodedElementsOfCommand.add(codes[":"] ?: 1)
+
+        // разбираем правую часть
+        for (ch in rightPart) {
             var isWord = false
-            var wordBuffer = ""
-            for (ch in rightPart) {
-                if (ch.isLetter() && !isWord) {
-                    isWord = true
-                    wordBuffer += ch
-                }
-                else if (ch.isLetter() && isWord) {
-                    wordBuffer += ch
-                }
-                else if (!ch.isLetter() && isWord) {
-                    isWord = false
-                    encodedElementsOfCommand.add(codes[wordBuffer] ?: -1)
-                    wordBuffer = ""
+            var buffer = ""
+            if ((ch.isLetter() || ch.isDigit()) && !isWord) {
+                isWord = true
+                buffer += ch
+            }
+            else if ((ch.isDigit() || ch.isLetter()) && isWord) {
+                buffer += ch
+            }
+            else if (!ch.isLetter() && !ch.isDigit() && isWord) {
+                encodedElementsOfCommand.add(codes[buffer] ?: -1)
+                isWord = false
+                buffer = ""
+            }
+            else if (!ch.isLetter() && !ch.isDigit()) {
+                if (ch in listOf(',', '.', '[', ']', '(', ')', '*', ';', ':', '#')) {
                     encodedElementsOfCommand.add(codes[ch.toString()] ?: -1)
                 }
-                else {
-                    encodedElementsOfCommand.add(codes[ch.toString()] ?: -1)
-                }
+                // символы, не входящие в этот список, не учитываются
             }
         }
 
+
+        encodedElementsOfCommand.add(codes["."] ?: 4)
         encodedElementsOfCommand.forEach { print("$it, ") }
         println()
     }
