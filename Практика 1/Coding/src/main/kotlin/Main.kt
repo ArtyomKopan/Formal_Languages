@@ -102,22 +102,30 @@ fun main() {
     codes.forEach { (t, u) -> println("$t $u") }
 
     for (line in grammarDescription) {
+        if ("Eofgram" in line) {
+            println(1000)
+            break
+        }
+
         var buffer = ""
         val encodedLine = mutableListOf<Int>()
+
+        // неправильно обрабатывается последовательность "*(" (когда нет пробела)
         for (ch in line) {
-            if (buffer != "" && buffer in codes.keys) {
+            if (buffer in codes.keys) {
                 encodedLine.add(codes[buffer] ?: -1)
                 buffer = ""
-            } else if (ch != ' ') {
+            }
+            else if (ch != ' ' && ch != '\n' && ch != '\t') {
                 buffer += ch
             }
         }
 
-        if (buffer != "" && buffer in codes.keys) {
+        if (buffer in codes.keys) {
             encodedLine.add(codes[buffer] ?: -1)
         }
 
-        encodedLine.forEach { print("$it ") }
-        println()
+        encodedLine.forEach { print("$it, ") }
+        println(codes["."])
     }
 }
