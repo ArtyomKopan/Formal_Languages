@@ -1,7 +1,7 @@
 import java.nio.file.Files
 import java.nio.file.Path
 
-fun coding(grammarDescription: List<String>): Map<String, Int> {
+fun coding(grammar: List<String>): Map<String, Int> {
     val codes = mutableMapOf(
             ":" to 1,
             "(" to 2,
@@ -15,8 +15,6 @@ fun coding(grammarDescription: List<String>): Map<String, Int> {
             "]" to 10,
             "Eofgram" to 1000
     )
-
-    val grammar = grammarDescription.map { it.trim() }
 
     var terminalNumber = 51
     var nonterminalNumber = 11
@@ -103,7 +101,7 @@ fun main() {
     val codes = coding(grammarDescription)
     codes.forEach { (t, u) -> println("$t $u") }
 
-    for (line in grammarDescription.map { it.trim() }) {
+    for (line in grammarDescription) {
         var buffer = ""
         val encodedLine = mutableListOf<Int>()
         for (ch in line) {
