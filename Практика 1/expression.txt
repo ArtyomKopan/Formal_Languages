@@ -1,9 +1,9 @@
-expression : ( formula )*( ',' ) .
-formula : ( *( $opcode1 '<operation>' ) operand $operand )*(
+expression : ( formula ) * ( ',' ) .
+formula : ( * ( $opcode1 '<operation>' ) operand $operand ) * (
       ( $opcode2 '<assignation>' ; $opcode2 '<operation>' ) ) .
 operand : ( (  $incr1 '<increment>' $tag '<tag>' ;
           $tag '<tag>' ( $incr2 '<increment>' ;
-                         ( $array1 '[' formula $array2 ']' )* ;
+                         ( $array1 '[' formula $array2 ']' ) * ;
                          $call1 '(' [ expression $call2 ]
                                  $call3 ')' ;
                          $ident ) ;
@@ -11,5 +11,5 @@ operand : ( (  $incr1 '<increment>' $tag '<tag>' ;
                [ ( $dot '.' ; $arrow '->' ) $field '<tag>' ] ;
     $tag '<label>' ;
     $number '<number>' ;  $char '<char>' ; $string '<string>'
-           )*( $cond1 '?' expression $cond2 ':' ) .
+           ) * ( $cond1 '?' expression $cond2 ':' ) .
 Eofgram

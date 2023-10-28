@@ -3,17 +3,17 @@ import java.nio.file.Path
 
 fun coding(grammar: List<String>): Map<String, Int> {
     val codes = mutableMapOf(
-            ":" to 1,
-            "(" to 2,
-            ")" to 3,
-            "." to 4,
-            "*" to 5,
-            ";" to 6,
-            "," to 7,
-            "#" to 8,
-            "[" to 9,
-            "]" to 10,
-            "Eofgram" to 1000
+        ":" to 1,
+        "(" to 2,
+        ")" to 3,
+        "." to 4,
+        "*" to 5,
+        ";" to 6,
+        "," to 7,
+        "#" to 8,
+        "[" to 9,
+        "]" to 10,
+        "Eofgram" to 1000
     )
 
     var terminalNumber = 51
@@ -39,8 +39,8 @@ fun coding(grammar: List<String>): Map<String, Int> {
 
         // кодируем семантики
         val semantics = command
-                .split(" ")
-                .filter { it.matches(Regex("\\$[a-z]+[0-9]*")) }
+            .split(" ")
+            .filter { it.matches(Regex("\\$[a-z]+[0-9]*")) }
         for (semantic in semantics) {
             if (semanticNumber >= 1000) {
                 break
@@ -53,8 +53,8 @@ fun coding(grammar: List<String>): Map<String, Int> {
         // кодируем нетерминалы, обозначенные заглавными буквами
 
         val nonterminals = command
-                .split(" ")
-                .filter { it.matches(Regex("[A-Z]+")) }
+            .split(" ")
+            .filter { it.matches(Regex("[A-Z]+")) }
         for (nonterminal in nonterminals) {
             if (nonterminalNumber > 50) {
                 break
@@ -67,11 +67,11 @@ fun coding(grammar: List<String>): Map<String, Int> {
         // кодируем терминалы
         val rightPartCommand = command.split(" : ")[1]
         val terminals = rightPartCommand
-                .split(" ")
-                .filter {
-                    it.matches(Regex("'.+'")) ||
-                            it.matches(Regex("[a-z]+"))
-                }
+            .split(" ")
+            .filter {
+                it.matches(Regex("'.+'")) ||
+                        it.matches(Regex("[a-z]+"))
+            }
         for (terminal in terminals) {
             if (terminalNumber > 100) {
                 break
@@ -95,9 +95,9 @@ fun main() {
     println("Введите путь к файлу с описанием грамматики: ")
     val pathToInputFile = readlnOrNull() ?: "../expression.txt"
     val grammarDescription = Files
-            .readString(Path.of(pathToInputFile))
-            .split(" .")
-            .map { it.trim() }
+        .readString(Path.of(pathToInputFile))
+        .split(" .")
+        .map { it.trim() }
     val codes = coding(grammarDescription)
     codes.forEach { (t, u) -> println("$t $u") }
 
@@ -110,13 +110,11 @@ fun main() {
         var buffer = ""
         val encodedLine = mutableListOf<Int>()
 
-        // неправильно обрабатывается последовательность "*(" (когда нет пробела)
         for (ch in line) {
             if (buffer in codes.keys) {
                 encodedLine.add(codes[buffer] ?: -1)
                 buffer = ""
-            }
-            else if (ch != ' ' && ch != '\n' && ch != '\t') {
+            } else if (ch != ' ' && ch != '\n' && ch != '\t') {
                 buffer += ch
             }
         }
