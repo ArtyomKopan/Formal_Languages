@@ -55,25 +55,65 @@ class LinearGraphDiagram private constructor(
         val leftValue: Array<String>
         val rightValue: Array<String>
 
-        when (type) {
+        return when (type) {
             LinearGraphDiagramType.AND -> {
                 leftValue = left!!.getValue(startIndex)
                 rightValue = right!!.getValue(startIndex + leftValue.size)
-                return leftValue.plus(rightValue)
+                leftValue.plus(rightValue)
             }
 
             LinearGraphDiagramType.OR -> {
-                // Logic for Or case
-                // ...
+                leftValue = left!!.getValue(startIndex + 2)
+                rightValue = right!!.getValue(startIndex + leftValue.size + 4)
+                if (leftValue.isEmpty()) {
+                    val orValueLeftEmpty = mutableListOf("<", (startIndex + rightValue.size + 2).toString())
+                    orValueLeftEmpty.addAll(rightValue)
+                    orValueLeftEmpty.toTypedArray()
+                }
+
+                val orValue = mutableListOf("<")
+                val rightValueIndex = startIndex + leftValue.size + 4
+                orValue.add(rightValueIndex.toString())
+                orValue.addAll(leftValue)
+                orValue.add("|")
+                val orEndIndex = startIndex + leftValue.size + rightValue.size + 4
+                orValue.add(orEndIndex.toString())
+                orValue.addAll(rightValue)
+                orValue.toTypedArray()
             }
 
             LinearGraphDiagramType.LOOP -> {
-                // Logic for Loop case
-                // ...
-            }
-        }
+                leftValue = left!!.getValue(startIndex)
+                rightValue = right!!.getValue(startIndex + leftValue.size + 2)
+                if (leftValue.isEmpty()) {
+                    val loopValueLeftEmpty = mutableListOf("<", (startIndex + rightValue.size + 4).toString())
+                    loopValueLeftEmpty.addAll(rightValue)
+                    loopValueLeftEmpty.add("|")
+                    loopValueLeftEmpty.add(startIndex.toString())
+                    loopValueLeftEmpty.toTypedArray()
+                }
 
-        throw NotImplementedError()
+                if (rightValue.isEmpty()) {
+                    val loopValueRightEmpty = mutableListOf<String>()
+                    loopValueRightEmpty.addAll(leftValue)
+                    loopValueRightEmpty.add("<")
+                    loopValueRightEmpty.add(startIndex.toString())
+                    loopValueRightEmpty.toTypedArray()
+                }
+
+                val loopValue = mutableListOf<String>()
+                loopValue.addAll(leftValue)
+                loopValue.add("<")
+                val loopEndIndex = startIndex + leftValue.size + rightValue.size + 4
+                loopValue.add(loopEndIndex.toString())
+                loopValue.addAll(rightValue)
+                loopValue.add("|")
+                loopValue.add(startIndex.toString())
+                loopValue.toTypedArray()
+            }
+
+            else -> throw NotImplementedError()
+        }
     }
 
     fun getResultValue(startIndex: Int = 0, endComment: String? = null): Array<String> {
