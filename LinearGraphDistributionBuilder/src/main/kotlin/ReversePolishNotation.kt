@@ -1,7 +1,7 @@
 package lgdb
 
 
-class ReversePolishNotation {
+object ReversePolishNotation {
     private class ExpressionTreeNode(
         val weight: Int,
         val value: String

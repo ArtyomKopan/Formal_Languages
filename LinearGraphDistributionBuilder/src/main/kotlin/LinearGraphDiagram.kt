@@ -43,6 +43,13 @@ class LinearGraphDiagram private constructor(
         null
     )
 
+    constructor(value: String?, isNonterminal: Boolean = false) : this(
+        null,
+        null,
+        if (isNonterminal) LinearGraphDiagramType.NEW_DIAGRAM else LinearGraphDiagramType.VALUE,
+        if (value != EMPTY_VALUE) value else null
+    )
+
     fun getValue(startIndex: Int = 0): Array<String> {
         if (type == LinearGraphDiagramType.VALUE) {
             return if (value != null) arrayOf(value) else emptyArray()
